@@ -1,0 +1,32 @@
+{% extends 'Charlie/base.html' %}
+{% load static %}
+
+{% block title_block %}
+    User Profiles
+{% endblock %}
+
+{% block body_block %}
+<div class="jumbotron p-1">
+    <h1 class="jumbotron-heading">User Profiles</h1>
+    <p class="lead">See other users and their progress</p>
+</div>
+        <div class="row">
+        {% if user_profile_list %}
+        <div class="panel-body">
+            <div class="list-group">
+                {% for list_user in user_profile_list %}
+                <div class="list-group-item">
+                    <h4 class="list-group-item-heading">
+                    <a href="{% url 'Charlie:profile' list_user.user.username %}">
+                        {{ list_user.user.username }}
+                    </a>
+                    </h4>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% else %}
+            <p>There are no users present on Rango.</p>
+        {% endif %}
+    </div>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends 'Charlie/base.html' %}
+{% load static %}
+
+{% block title_block %}
+    Add a Page
+{% endblock %}
+
+{% block body_block%}
+    <div class="jumbotron p-1 ">
+        <h1 class="display-4">Add a page</h1>
+        <p class="lead">Add page to your favorite category</p>
+    </div>
+    <div class="form-group">
+    <form id="add_page_form" method="post" action="{% url 'Charlie:add_page' category.slug %}">
+        {% csrf_token %}
+        {% for hidden in form.hidden_fields %}
+            {{ hidden }}
+        {% endfor %}
+        {% for field in form.visible_fields %}
+            {{ field.errors }}
+            {{ field.help_text }}
+            {{ field }}
+        {% endfor %}
+        <button class="btn btn-primary" type="submit" name="submit">
+            Add Page
+        </button>
+    </form>
+    </div>
+{% endblock%}

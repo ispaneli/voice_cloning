@@ -1,0 +1,41 @@
+{% extends 'Charlie/base.html' %}
+{% load static %}
+
+{% block title_block %}
+    Profile for {{ selected_user.username}}
+{% endblock %}
+
+{% block body_block%}
+    <div class="jumbotron p-1">
+            <h1 class="jumbotron-heading">{{ selected_user.username}}'s profile</h1>
+            <p class="lead">Check your awesome picture!</p>
+    </div>
+<div class="row">
+    <img src="{{MEDIA_URL}}{{ user_profile.picture }}"
+         width=300
+         height=300
+         alt="{{ selected_user.username }}'s profile image" />
+    <br/>
+    <div class="container">
+        <p class="lead">Here is the result!</p>
+        <audio controls>
+            <source src="{{ MEDIA_URL }}{{ synthesizer.input_audio }}" type="audio/mpeg">
+        </audio>
+    </div>
+    <div>
+        {% if selected_user == user %}
+            <form id="profile" method="post" action="{% url 'Charlie:profile' user.username %}"
+                  enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <input type="submit" value="Update" />
+            </form>
+        {% else %}
+            <p>
+                <strong>Website:</strong>
+                <a href="{{ user_profile.website }}">{{ user_profile.website }}</a>
+            </p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

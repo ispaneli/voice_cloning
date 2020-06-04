@@ -1,0 +1,29 @@
+{% extends 'Charlie/base.html' %}
+{% load static %}
+
+{% block title_block %}
+    Synthesizer
+{% endblock %}
+
+{% block body_block%}
+    <div class="jumbotron p-1">
+            <h1 class="jumbotron-heading">Synthesizer</h1>
+            <p class="lead">Let's hear the voice of your PC!</p>
+    </div>
+<div class="container">
+<div class="row">
+            <form id="synthesizer" method="post" action="{% url 'Charlie:synthesizer'%}"
+                  enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <input type="submit" value="Synthesize" />
+            </form>
+        </div>
+</div>
+    <div class="container">
+        <p class="lead">Here is the result!</p>
+    <audio controls>
+        <source src="{{ MEDIA_URL }}{{ synthesizer.input_audio }}" type="audio/mpeg">
+    </audio>
+    </div>
+{% endblock %}

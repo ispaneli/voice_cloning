@@ -1,0 +1,17 @@
+{% extends 'Charlie/base.html' %}
+{% load static %}
+
+{% block title_block %}
+    Restricted Page
+{% endblock %}
+
+{% block body_block%}
+    <div class="jumbotron p-1">
+        <div class="container">
+            <h1 class="jumbotron-heading">Restricted Page</h1>
+        </div>
+    </div>
+    <div>
+        <strong>Since you're logged in, you can see this text!</strong>
+    </div>
+{% endblock %}
