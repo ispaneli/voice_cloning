@@ -1,9 +1,8 @@
 from django.shortcuts import render, redirect, reverse
-from Charlie.models import Category, Page, UserProfile, Synthesizer
+from Charlie.models import UserProfile, Synthesizer
 from django.contrib.auth.models import User
-from Charlie.forms import CategoryForm, PageForm, UserForm, UserProfileForm, SynthesizerForm
+from Charlie.forms import UserForm, UserProfileForm, SynthesizerForm
 from django.contrib.auth.decorators import login_required
-from datetime import datetime
 from django.views import View
 from django.utils.decorators import method_decorator
 
@@ -11,128 +10,32 @@ from django.utils.decorators import method_decorator
 # Create your views here.
 
 
-def get_server_side_cookie(request, cookie, default_val=None):
-    val = request.session.get(cookie)
-    if not val:
-        val = default_val
-    return val
-
-
-def visitor_cookie_handler(request):
-    visits = int(get_server_side_cookie(request, 'visits', '1'))
-    last_visit_cookie = get_server_side_cookie(request, 'last_visit',
-                                               str(datetime.now())
-                                               )
-    last_visit_time = datetime.strptime(last_visit_cookie[:-7], '%Y-%m-%d %H:%M:%S')
-
-    if (datetime.now() - last_visit_time).seconds > 0:
-        visits += 1
-        request.session['last_visit'] = str(datetime.now())
-    else:
-        request.session['last_visit'] = last_visit_cookie
-
-    request.session['visits'] = visits
-
-
 class Index(View):
+    """
+        Класс, отвечающий за главную страницу
+    """
     @staticmethod
     def get(request):
-        category_list = Category.objects.order_by('-likes')[:5]
-        page_list = Page.objects.order_by('-views')[:5]
-        context_dict = {'boldmessage': 'Crunchy, creamy, cookie, candy, cupcake!',
-                        'categories': category_list,
-                        'pages': page_list}
-        visitor_cookie_handler(request)
-        response = render(request, 'Charlie/index.html', context=context_dict)
-        return response
+        return render(request, 'Charlie/index.html')
 
 
 class AboutView(View):
+    """
+        Класс, отвечающий за страницу информации
+    """
     @staticmethod
     def get(request):
-        context_dict = {}
-        visitor_cookie_handler(request)
-        context_dict['visits'] = request.session['visits']
-
-        return render(request, 'Charlie/about.html', context=context_dict)
-
-
-class ShowCategory(View):
-    @staticmethod
-    def get(request, category_name_slug):
-        context_dict = {}
-        try:
-            category = Category.objects.get(slug=category_name_slug)
-            pages = Page.objects.filter(category=category)
-            context_dict['pages'] = pages
-            context_dict['category'] = category
-        except Category.DoesNotExist:
-            context_dict['pages'] = None
-            context_dict['category'] = None
-
-        return render(request, 'Charlie/category.html', context=context_dict)
-
-
-class AddCategoryView(View):
-    @method_decorator(login_required)
-    def get(self, request):
-        form = CategoryForm()
-        return render(request, 'Charlie/add_category.html',
-                      {'form': form})
-
-    @method_decorator(login_required)
-    def post(self, request):
-        form = CategoryForm(request.POST)
-        if form.is_valid():
-            form.save(commit=True)
-            return redirect('/Charlie/')
-        else:
-            print(form.errors)
-
-        return render(request, 'Charlie/add_category.html',
-                      {'form': form})
-
-
-def add_page_decorator(func):
-    def wrapper(request, category_name_slug):
-        try:
-            category = Category.objects.get(slug=category_name_slug)
-        except Category.DoesNotExist:
-            category = None
-        if category is None:
-            return redirect('/Charlie/')
-        form = PageForm()
-        context_dict = {'form': form, 'category': category}
-        return func(request, category_name_slug, context_dict, category)
-
-    return wrapper
-
-
-class AddPageView(View):
-
-    @method_decorator(login_required)
-    @method_decorator(add_page_decorator)
-    def get(self, request, category_name_slug, context_dict, category):
-        return render(request, 'Charlie/add_page.html', context=context_dict)
-
-    @method_decorator(login_required)
-    @method_decorator(add_page_decorator)
-    def post(self, request, category_name_slug, context_dict, category):
-        form = PageForm(request.POST)
-        if form.is_valid():
-            page = form.save(commit=False)
-            page.category = category
-            page.views = 0
-            page.save()
-
-            return redirect(reverse('Charlie:show_category',
-                                    kwargs={'category_name_slug': category_name_slug}))
-        else:
-            print(form.errors)
-        return render(request, 'Charlie/add_page.html', context=context_dict)
+        return render(request, 'Charlie/about.html')
 
 
 class RegisterProfileView(View):
+    """
+        Класс, отвечающий за страницу настройки дополнительной информации профиля,
+        появляющейся сразу после создания профиля
+
+        :picture:   добавляется картинка пользователя
+        :website:   добавляется вебстраница пользователя
+    """
     @method_decorator(login_required)
     def get(self, request):
         form = UserProfileForm()
@@ -148,34 +51,80 @@ class RegisterProfileView(View):
             user_profile.save()
 
             return redirect(reverse('Charlie:index'))
-
         else:
             print(form.errors)
 
 
-class ProfileView(View):
+def post_helper(form, user):
+    """
+        Вспомогательная функция для сохранения формы, исключает
+        дублирование кода в классах ProfileView и SynthesizerView
+
+        :param form: форма для заполнения
+        :param user: текущий пользователь
+        :return: None
+    """
+    if form.is_valid():
+        form.save(commit=True)
+        return redirect('Charlie:profile', user.username)
+    else:
+        print(form.errors)
+
+
+class Details:
+    """
+        Класс для предоставления деталей о пользователе. Возвращает пользователя,
+        нужную модель и форму для заполнения
+
+        :method_dict: нужен для выбора необходимой формы в наших методах класса
+    """
+    method_dict = {'user': (UserProfile, UserProfileForm),
+                   'synthesizer': (Synthesizer, SynthesizerForm)}
+
+    @classmethod
+    def provide_details(cls, username, parameter):
+        """
+            Интерфейс предоставления деталей пользователя
+        :param username: пользователь
+        :param parameter: нужный метод
+        :return: user, our_model, form
+        """
+        method = cls.method_dict[parameter]
+        try:
+            user, our_model, form = cls.get_user_details(username, method)
+        except TypeError:
+            return redirect(reverse('Charlie:index'))
+
+        return user, our_model, form
 
     @staticmethod
-    def get_user_details(username):
+    def get_user_details(username, model):
+        """
+            Реализация интерфейса предоставления деталей
+        :param username: пользователь
+        :param model: метод
+        :return: return user, our_model, form
+        """
         try:
             user = User.objects.get(username=username)
         except User.DoesNotExist:
             return None
 
-        user_profile = UserProfile.objects.get_or_create(user=user)[0]
-        form = UserProfileForm({'website': user_profile.website,
-                                'picture': user_profile.picture})
+        our_model = model[0].objects.get_or_create(user=user)[0]
+        form = model[1](model[0].filling_params(our_model))
 
-        return user, user_profile, form
+        return user, our_model, form
+
+
+class ProfileView(View):
+    """
+        Класс настройки и просмотра нашего профиля
+    """
 
     @method_decorator(login_required)
     def get(self, request, username):
-        try:
-            user, user_profile, form = self.get_user_details(username)
-            synthesizer = Synthesizer.objects.get_or_create(user=user)[0]
-        except TypeError:
-            return redirect(reverse('Charlie:index'))
-
+        user, user_profile, form = Details.provide_details(username, 'user')
+        synthesizer = Synthesizer.objects.get_or_create(user=user)[0]
         context_dict = {'user_profile': user_profile,
                         'selected_user': user,
                         'form': form,
@@ -185,17 +134,9 @@ class ProfileView(View):
 
     @method_decorator(login_required)
     def post(self, request, username):
-        try:
-            user, user_profile, form = self.get_user_details(username)
-        except TypeError:
-            return redirect(reverse('Charlie:index'))
-
+        user, user_profile, form = Details.provide_details(username, 'user')
         form = UserProfileForm(request.POST, request.FILES, instance=user_profile)
-        if form.is_valid():
-            form.save(commit=True)
-            return redirect('Charlie:profile', user.username)
-        else:
-            print(form.errors)
+        post_helper(form, user)
         context_dict = {'user_profile': user_profile,
                         'selected_user': user,
                         'form': form}
@@ -204,6 +145,9 @@ class ProfileView(View):
 
 
 class ListProfilesView(View):
+    """
+        Класс предоставляет список всех пользователей
+    """
     @method_decorator(login_required)
     def get(self, request):
         profiles = UserProfile.objects.all()
@@ -213,27 +157,15 @@ class ListProfilesView(View):
 
 
 class SynthesizerView(View):
+    """
+        Класс обращается к синтезатору и возвращает произведенную запись
+    """
     path = ''
-    @staticmethod
-    def get_user_details(username):
-        try:
-            user = User.objects.get(username=username)
-        except User.DoesNotExist:
-            return None
-
-        synthesizer = Synthesizer.objects.get_or_create(user=user)[0]
-        form = SynthesizerForm({'text': synthesizer.text,
-                                'input_audio': synthesizer.input_audio})
-
-        return user, synthesizer, form
 
     @method_decorator(login_required)
     def get(self, request):
-        try:
-            user, synthesizer, form = self.get_user_details(request.user)
-        except TypeError:
-            return redirect(reverse('Charlie:index'))
 
+        user, synthesizer, form = Details.provide_details(request.user, 'synthesizer')
         context_dict = {'synthesizer': synthesizer,
                         'form': form,
                         }
@@ -241,17 +173,10 @@ class SynthesizerView(View):
 
     @method_decorator(login_required)
     def post(self, request):
-        try:
-            user, synthesizer, form = self.get_user_details(request.user)
-        except TypeError:
-            return redirect(reverse('Charlie:index'))
 
+        user, synthesizer, form = Details.provide_details(request.user, 'synthesizer')
         form = SynthesizerForm(request.POST, request.FILES, instance=synthesizer)
-        if form.is_valid():
-            form.save(commit=True)
-            return redirect('Charlie:synthesizer')
-        else:
-            print(form.errors)
+        post_helper(form, user)
 
         context_dict = {'synthesizer': synthesizer,
                         'form': form}
