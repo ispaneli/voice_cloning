@@ -181,3 +181,11 @@ class SynthesizerView(View):
         context_dict = {'synthesizer': synthesizer,
                         'form': form}
         return render(request, 'Charlie/synthesizer.html', context=context_dict)
+
+
+class SampleView(View):
+    """
+
+    """
+    def get(self, request):
+        return render(request, 'Charlie/sample.html')

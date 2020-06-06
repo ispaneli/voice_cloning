@@ -16,7 +16,15 @@
                   enctype="multipart/form-data">
                 {% csrf_token %}
                 {{ form.as_p }}
-                <input type="submit" value="Synthesize" />
+                <div class="card text-white bg-info mb-3">
+                    <div class="card-body" >
+                        <h5 class="card-title">Прочти текст и загрузи запись</h5>
+                        <p class="lead">
+                            Текст про пчелу и её в проблемы в Миннеаполисе
+                        </p>
+                    </div>
+                </div>
+                <input type="submit" class="btn-primary" value="Synthesize" />
             </form>
         </div>
 </div>

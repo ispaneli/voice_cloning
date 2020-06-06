@@ -12,4 +12,5 @@ urlpatterns = [
     path('profile/<username>/', views.ProfileView.as_view(), name='profile'),
     path('profiles/', views.ListProfilesView.as_view(), name='profiles'),
     path('synthesizer/', views.SynthesizerView.as_view(), name='synthesizer'),
+    path('samples/', views.SampleView.as_view(), name='sample')
 ]
