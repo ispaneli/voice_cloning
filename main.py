@@ -1,5 +1,5 @@
 from synthesizer.inference import Synthesizer
-from encoder import inference as encoder
+import encoder
 from vocoder import inference as vocoder
 from pathlib import Path
 import numpy as np
@@ -13,7 +13,7 @@ SPEAKER_NAME = 'Ordinary men'
 
 
 def init_encoder():
-    model_fpath = Path('/home/ilya/PycharmProjects/Real-Time-Voice-Cloning/encoder/saved_models/pretrained.pt')
+    model_fpath = Path('/home/ilya/PycharmProjects/Real-Time-Voice-Cloning/saved_models/pretrained_encoder.pt')
     encoder.load_model(model_fpath)
 
 
@@ -29,8 +29,8 @@ def add_real_utterance(wav, filename, speaker_name):
         # Compute the embedding
         if not encoder.is_loaded():
             init_encoder()
-        encoder_wav = encoder.preprocess_wav(wav)
-        embed, partial_embeds, _ = encoder.embed_utterance(encoder_wav, return_partials=True)
+        encoder_wav = encoder.preprocess_wav(wav_array=wav)
+        embed, partial_embeds, _ = encoder.embed_utterance(encoder_wav)
 
         print('done')
         return embed
@@ -112,8 +112,8 @@ def vocode(spec, breaks):
     # TODO: this is problematic with different sampling rates, gotta fix it
     if not encoder.is_loaded():
         init_encoder()
-    encoder_wav = encoder.preprocess_wav(wav)
-    embed, partial_embeds, _ = encoder.embed_utterance(encoder_wav, return_partials=True)
+    encoder_wav = encoder.preprocess_wav(wav_array=wav)
+    embed, partial_embeds, _ = encoder.embed_utterance(encoder_wav)
 
     sampling_frequency = 16000
     #mydata = sd.rec(wav, frames=sampling_frequency, dtype='float64', channels=2, blocking=True)
