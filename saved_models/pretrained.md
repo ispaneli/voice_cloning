@@ -1,1 +1,1 @@
-Тут должен быть файл pretrained_encoder.pt
+Тут должны быть файлы pretrained_encoder.pt и pretrained_vocoder.pt

@@ -1,6 +1,6 @@
 from synthesizer.inference import Synthesizer
 import encoder
-from vocoder import inference as vocoder
+import vocoder
 from pathlib import Path
 import numpy as np
 import sounddevice as sd
@@ -18,7 +18,7 @@ def init_encoder():
 
 
 def init_vocoder():
-    model_fpath = Path('/home/ilya/PycharmProjects/Real-Time-Voice-Cloning/vocoder/saved_models/pretrained/pretrained.pt')
+    model_fpath = Path('/home/ilya/PycharmProjects/Real-Time-Voice-Cloning/saved_models/pretrained_vocoder.pt')
     vocoder.load_model(model_fpath)
 
 
@@ -93,7 +93,9 @@ def vocode(spec, breaks):
     current_vocoder_fpath = Path('/home/ilya/PycharmProjects/Real-Time-Voice-Cloning/vocoder/saved_models/pretrained/pretrained.pt')
 
     if current_vocoder_fpath is not None:
-        wav = vocoder.infer_waveform(spec, progress_callback=vocoder_progress)
+        # wav = vocoder.get_waveform(spec, progress_callback=vocoder_progress)
+        wav = vocoder.get_waveform(spec)
+        # wav = vocoder.infer_waveform(spec)
     else:
         wav = Synthesizer.griffin_lim(spec)
 
@@ -148,6 +150,21 @@ if __name__ == '__main__':
         print('Файл был успешно удален!')
     else:
         raise ValueError('Несоответсвующий вес:', size)
+
+# rnn_dims = 512,
+# fc_dims = 512,
+# bits = 9,
+# pad = 2,
+# upsample_factors = (5, 5, 8),
+# feat_dims = 80,
+# compute_dims = 128,
+# res_out_dims = 128,
+# res_blocks = 10,
+# hop_length = 200,
+# sample_rate = 16_000,
+# mode = 'RAW',
+#
+#     UpsampleNetwork(feat_dims, upsample_factors, compute_dims, res_blocks, res_out_dims, pad)
 
 
 
