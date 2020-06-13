@@ -18,23 +18,29 @@ class SpeakerEncoder(torch.nn.Module):
         self.loss_fn = torch.nn.CrossEntropyLoss().to(SpeakerEncoder._loss_device)
 
     @property
-    def device(self):
+    def device(self) -> torch.device:
         return SpeakerEncoder._device
 
     @staticmethod
-    def is_loaded():
+    def is_loaded() -> bool:
         return SpeakerEncoder._loaded
 
     def load_state_dict(self, *args, **kwargs):
         SpeakerEncoder._loaded = True
         return super().load_state_dict(*args, **kwargs)
 
-    def forward(self, utterances, hidden_init=None):
-        out, (hidden, cell) = self.lstm(utterances, hidden_init)
-        embeds_raw = self.relu(self.linear(hidden[-1]))
-        embeds = embeds_raw / torch.norm(embeds_raw, dim=1, keepdim=True)
+    def get_partial_embeddings(self, utterance_spectrograms: torch.Tensor) -> torch.Tensor:
+        """
+        Computes the embeddings of a batch of utterance spectrograms.
 
-        return embeds
+        :param utterance_spectrograms: A set of spectrograms of utterances.
+        :return: The embeddings as a tensor.
+        """
+        lstm_result = self.lstm(utterance_spectrograms)
+        embeddings_raw = self.relu(self.linear(lstm_result[-1][0][-1]))
+        partial_embeddings = embeddings_raw / torch.norm(embeddings_raw, dim=1, keepdim=True)
+
+        return partial_embeddings
 
 
 encoder_model = SpeakerEncoder()
