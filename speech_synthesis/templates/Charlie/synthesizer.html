@@ -16,6 +16,14 @@
                   enctype="multipart/form-data">
                 {% csrf_token %}
                 {{ form.as_p }}
+                <label for="inputState">Choose Voice or upload your own</label>
+                <select id="inputState" class="form-control">
+                    <option selected>Choose...</option>
+                    <option>Voice(Durak) - Male</option>
+                    <option>Voice(Moriak) - Male</option>
+                    <option>Voice(Pchela) - Male</option>
+                </select>
+                <div class="p-2"></div>
                 <div class="card text-white bg-info mb-3">
                     <div class="card-body" >
                         <h5 class="card-title">Прочти текст и загрузи запись</h5>

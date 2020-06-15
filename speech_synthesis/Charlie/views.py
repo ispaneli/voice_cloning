@@ -7,9 +7,6 @@ from django.views import View
 from django.utils.decorators import method_decorator
 
 
-# Create your views here.
-
-
 class Index(View):
     """
         Класс, отвечающий за главную страницу
@@ -188,4 +185,11 @@ class SampleView(View):
 
     """
     def get(self, request):
-        return render(request, 'Charlie/sample.html')
+        users = ('durak', 'moriak', 'pchela')
+        context = {}
+        for user in users:
+            det_user, user_profile, _ = Details.provide_details(user, 'user')
+            context[user] = user_profile
+            synthesizer = Synthesizer.objects.get_or_create(user=det_user)[0]
+            context[user + "_synth"] = synthesizer
+        return render(request, 'Charlie/sample.html', context=context)

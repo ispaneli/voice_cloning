@@ -19,7 +19,7 @@
     <div class="container">
         <p class="lead">Here is the result!</p>
         <audio controls>
-            <source src="{{ MEDIA_URL }}{{ synthesizer.input_audio }}" type="audio/mpeg">
+            <source src="{{ MEDIA_URL }}{{ synthesizer.export_audio }}" type="audio/mpeg">
         </audio>
     </div>
     <div>
@@ -31,10 +31,12 @@
                 <input type="submit" value="Update" />
             </form>
         {% else %}
-            <p>
+        <div class="conatiner">
+            <p class="lead">
                 <strong>Website:</strong>
                 <a href="{{ user_profile.website }}">{{ user_profile.website }}</a>
             </p>
+        </div>
         {% endif %}
     </div>
 </div>
