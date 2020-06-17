@@ -7,7 +7,7 @@ import django
 django.setup()
 
 from Charlie.models import UserProfile, Synthesizer
-from django.contrib.auth.models import User, UserManager
+from django.contrib.auth.models import User
 from django.db import IntegrityError
 
 

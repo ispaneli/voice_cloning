@@ -5,7 +5,9 @@ from Charlie.forms import UserForm, UserProfileForm, SynthesizerForm
 from django.contrib.auth.decorators import login_required
 from django.views import View
 from django.utils.decorators import method_decorator
-
+import requests
+import struct
+import wave
 
 class Index(View):
     """
@@ -174,15 +176,31 @@ class SynthesizerView(View):
         user, synthesizer, form = Details.provide_details(request.user, 'synthesizer')
         form = SynthesizerForm(request.POST, request.FILES, instance=synthesizer)
         post_helper(form, user)
-
         context_dict = {'synthesizer': synthesizer,
-                        'form': form}
+                        'form': form,
+                        }
+
+        path = "media/" + str(synthesizer.input_audio)
+        audio = {'text': request.POST['text'],
+                 'audio': open(path, 'rb')}
+
+        a = requests.post('http://192.168.1.98:5005',
+                          data={'text': request.POST['text']},
+                          files=audio)
+
+        f = wave.open('media/recorded_sound.wav', 'w')
+        f.setparams((1, 2, 16000, 0, 'NONE', 'NONE'))
+        f.writeframes(a._content)
+        f.close()
+
+        synthesizer.export_audio = 'recorded_sound.wav'
         return render(request, 'Charlie/synthesizer.html', context=context_dict)
 
 
 class SampleView(View):
     """
-
+        После заселения БД доступна страничка образцов. Из БД берутся три
+        профиля по умолчанию.
     """
     def get(self, request):
         users = ('durak', 'moriak', 'pchela')

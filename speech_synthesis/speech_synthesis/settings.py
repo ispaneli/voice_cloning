@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
+from fnmatch import fnmatch
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -27,7 +28,7 @@ SECRET_KEY = '&5v^b@j&-)g$x*^+m5^m2*t709&04i=&x%aqwcy7^6-q2u$(v_'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '192.168.1.142', '127.0.0.1', '192.168.1.1', '192.168.148.113']
 
 STATICFILES_DIRS = [STATIC_DIR,]
 
@@ -141,3 +142,4 @@ REGISTRATION_OPEN = True
 REGISTRATION_AUTO_LOGIN = True
 LOGIN_REDIRECT_URL = 'Charlie:index'
 LOGIN_URL = 'auth_login'
+
