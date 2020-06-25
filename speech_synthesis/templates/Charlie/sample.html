@@ -17,14 +17,14 @@
         <div class="col-md-4">
           <div class="card h-100 mb-4 shadow-sm">
             <div class="card-body">
-                <img src="{{MEDIA_URL}}{{ durak.picture }}"
+                <img src="{% static 'images/дурак.jpg' %}"
                 class="card-img-top" alt="First voice sample">
                 <h5 class="card-title">Мужской голос(Дурак)</h5>
               <p class="card-text"> Мужской голос - 1
               </p>
               <div class="d-flex justify-content-between align-items-center">
                   <audio controls>
-                      <source src="{{ MEDIA_URL }}{{ durak_synth.export_audio }}" type="audio/mpeg">
+                      <source src="{{ MEDIA_URL }}pre_voices/durak.wav" type="audio/mpeg">
                   </audio>
               </div>
             </div>
@@ -33,14 +33,14 @@
          <div class="col-md-4">
           <div class="card h-100 mb-4 shadow-sm">
             <div class="card-body">
-                <img src="{{MEDIA_URL}}{{ moriak.picture }}"
+                <img src="{% static 'images/moriak.jpg' %}"
                      class="card-img-top" alt="Second voice sample">
                 <h5 class="card-title">Мужской голос(Моряк)</h5>
               <p class="card-text"> Мужской голос моряка
               </p>
               <div class="d-flex justify-content-between align-items-center">
                   <audio controls>
-                      <source src="{{ MEDIA_URL }}{{ moriak_synth.export_audio }}" type="audio/mpeg">
+                      <source src="{{ MEDIA_URL }}pre_voices/moriak.wav" type="audio/mpeg">
                   </audio>
               </div>
             </div>
@@ -49,14 +49,14 @@
           <div class="col-md-4">
           <div class="card h-100 mb-4 shadow-sm">
             <div class="card-body">
-                <img src="{{MEDIA_URL}}{{ pchela.picture }}"
+                <img src="{% static 'images/bee.jpg' %}"
                     class="card-img-top" alt="Third voice sample">
                 <h5 class="card-title">Мужской голос(Пчела)</h5>
               <p class="card-text"> Голос пчелы, никто все равно не знает как она говорит
               </p>
               <div class="d-flex justify-content-between align-items-center">
                   <audio controls>
-                      <source src="{{ MEDIA_URL }}{{ pchela_synth.export_audio }}" type="audio/mpeg">
+                      <source src="{{ MEDIA_URL }}pre_voices/durak.wav" type="audio/mpeg">
                   </audio>
               </div>
             </div>

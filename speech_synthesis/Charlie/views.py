@@ -9,6 +9,7 @@ import requests
 import struct
 import wave
 
+
 class Index(View):
     """
         Класс, отвечающий за главную страницу
@@ -199,15 +200,7 @@ class SynthesizerView(View):
 
 class SampleView(View):
     """
-        После заселения БД доступна страничка образцов. Из БД берутся три
-        профиля по умолчанию.
+        Отображение странички с статичными данными
     """
     def get(self, request):
-        users = ('durak', 'moriak', 'pchela')
-        context = {}
-        for user in users:
-            det_user, user_profile, _ = Details.provide_details(user, 'user')
-            context[user] = user_profile
-            synthesizer = Synthesizer.objects.get_or_create(user=det_user)[0]
-            context[user + "_synth"] = synthesizer
-        return render(request, 'Charlie/sample.html', context=context)
+        return render(request, 'Charlie/sample.html')
