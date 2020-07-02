@@ -18,6 +18,10 @@ class UserProfileForm(forms.ModelForm):
 
 
 class SynthesizerForm(forms.ModelForm):
+    choices = [('1', 'Durak(male voice)'), ('2', 'Moriak(male voice)'),
+               ('3', 'Bee(new gender)'), ('4', 'Your Voice')]
+    choices = forms.ChoiceField(choices=choices, label="Voice Sample")
+
     class Meta:
         model = Synthesizer
         fields = ('text', 'input_audio')

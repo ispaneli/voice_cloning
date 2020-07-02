@@ -16,12 +16,6 @@
          height=300
          alt="{{ selected_user.username }}'s profile image" />
     <br/>
-    <div class="container">
-        <p class="lead">Here is the result!</p>
-        <audio controls>
-            <source src="{{ MEDIA_URL }}{{ synthesizer.export_audio }}" type="audio/mpeg">
-        </audio>
-    </div>
     <div>
         {% if selected_user == user %}
             <form id="profile" method="post" action="{% url 'Charlie:profile' user.username %}"
@@ -38,6 +32,12 @@
             </p>
         </div>
         {% endif %}
+            <div class="container">
+            <p class="lead">Here is the result!</p>
+                <audio controls>
+                    <source src="{{ MEDIA_URL }}recorded_sound{{selected_user.username}}.wav" type="audio/mpeg">
+                </audio>
+            </div>
     </div>
 </div>
 {% endblock %}

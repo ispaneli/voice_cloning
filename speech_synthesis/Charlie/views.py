@@ -1,3 +1,5 @@
+import json
+from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, redirect, reverse
 from Charlie.models import UserProfile, Synthesizer
 from django.contrib.auth.models import User
@@ -6,9 +8,16 @@ from django.contrib.auth.decorators import login_required
 from django.views import View
 from django.utils.decorators import method_decorator
 import requests
+from speech_synthesis.settings import MEDIA_ROOT
+from Charlie.config import MICROSERVER_IP
+from Charlie.tasks import send_file
 import struct
 import wave
-
+import time
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
+import os
+from celery.result import AsyncResult
 
 class Index(View):
     """
@@ -125,6 +134,7 @@ class ProfileView(View):
     def get(self, request, username):
         user, user_profile, form = Details.provide_details(username, 'user')
         synthesizer = Synthesizer.objects.get_or_create(user=user)[0]
+        print(synthesizer.__dict__)
         context_dict = {'user_profile': user_profile,
                         'selected_user': user,
                         'form': form,
@@ -160,7 +170,8 @@ class SynthesizerView(View):
     """
         Класс обращается к синтезатору и возвращает произведенную запись
     """
-    path = ''
+    choices = {'1': 'pre_voices/durak.wav', '2': 'pre_voices/moriak.wav',
+               '3': 'pre_voices/durak.wav', '4': None}
 
     @method_decorator(login_required)
     def get(self, request):
@@ -173,29 +184,28 @@ class SynthesizerView(View):
 
     @method_decorator(login_required)
     def post(self, request):
-
+        path = "media/"
         user, synthesizer, form = Details.provide_details(request.user, 'synthesizer')
         form = SynthesizerForm(request.POST, request.FILES, instance=synthesizer)
+
+        if self.choices[request.POST['choices']] is not None:
+            path += self.choices[request.POST['choices']]
+        else:
+            synthesizer.input_audio = request.FILES['input_audio']
+            path += 'voice_samples/' + str(synthesizer.input_audio)
+
+
         post_helper(form, user)
-        context_dict = {'synthesizer': synthesizer,
-                        'form': form,
-                        }
+        request.session['text'] = request.POST['text']
+        request.session['audio'] = path
 
-        path = "media/" + str(synthesizer.input_audio)
-        audio = {'text': request.POST['text'],
-                 'audio': open(path, 'rb')}
-
-        a = requests.post('http://192.168.1.98:5005',
-                          data={'text': request.POST['text']},
-                          files=audio)
-
-        f = wave.open('media/recorded_sound.wav', 'w')
-        f.setparams((1, 2, 16000, 0, 'NONE', 'NONE'))
-        f.writeframes(a._content)
-        f.close()
-
-        synthesizer.export_audio = 'recorded_sound.wav'
-        return render(request, 'Charlie/synthesizer.html', context=context_dict)
+        connection = requests.get(MICROSERVER_IP)
+        if connection.status_code == requests.codes.ok:
+            send_file.delay(MICROSERVER_IP, request.POST['text'], path, user.username)
+            return redirect('Charlie:loader')
+        else:
+            return render(request, 'Charlie/error.html', context={'error': 'No connection to microserver. '
+                                                                           'Please try again'})
 
 
 class SampleView(View):
@@ -204,3 +214,10 @@ class SampleView(View):
     """
     def get(self, request):
         return render(request, 'Charlie/sample.html')
+
+
+class LoaderView(View):
+
+    @method_decorator(login_required)
+    def get(self, request):
+        return render(request, 'Charlie/loader.html')
