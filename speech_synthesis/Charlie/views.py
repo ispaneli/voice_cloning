@@ -188,11 +188,9 @@ class SynthesizerView(View):
             path += 'voice_samples/' + str(synthesizer.input_audio)
 
         post_helper(form, user)
-        connection = requests.get(MICROSERVER_IP)
-        if connection.status_code == requests.codes.ok:
-            send = send_file.delay(MICROSERVER_IP, request.POST['text'], path, user.username)
-            request.session['task_id'] = send.task_id
-            return redirect('Charlie:loader')
+        send = send_file.delay(MICROSERVER_IP, request.POST['text'], path, user.username)
+        request.session['task_id'] = send.task_id
+        return redirect('Charlie:loader')
 
 
 class SampleView(View):
