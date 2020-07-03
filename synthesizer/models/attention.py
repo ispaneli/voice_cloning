@@ -2,8 +2,7 @@
 
 import tensorflow as tf
 from tensorflow.contrib.seq2seq.python.ops.attention_wrapper import BahdanauAttention
-from tensorflow.python.layers import core as layers_core
-from tensorflow.python.ops import array_ops, math_ops, nn_ops, variable_scope
+from tensorflow.python.ops import array_ops, math_ops, variable_scope
 
 
 #From https://github.com/tensorflow/tensorflow/blob/r1.7/tensorflow/contrib/seq2seq/python/ops/attention_wrapper.py

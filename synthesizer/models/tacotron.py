@@ -1,6 +1,3 @@
-import tensorflow as tf
-from synthesizer.utils.symbols import symbols
-from synthesizer.infolog import log
 from synthesizer.models.helpers import TacoTrainingHelper, TacoTestHelper
 from synthesizer.models.modules import *
 from tensorflow.contrib.seq2seq import dynamic_decode
@@ -8,9 +5,11 @@ from synthesizer.models.architecture_wrappers import TacotronEncoderCell, Tacotr
 from synthesizer.models.custom_decoder import CustomDecoder
 from synthesizer.models.attention import LocationSensitiveAttention
 
-import numpy as np
-
-
+_pad = "_"
+_eos = "~"
+_characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!\'\"(),-.:;? "
+# Export all symbols:
+symbols = [_pad, _eos] + list(_characters)
 def split_func(x, split_pos):
     rst = []
     start = 0
@@ -272,41 +271,17 @@ class Tacotron():
                     
                     if post_condition:
                         self.tower_linear_outputs.append(linear_outputs)
-            log("initialisation done {}".format(gpus[i]))
         
         if is_training:
             self.ratio = self.helper._ratio
         self.tower_inputs = tower_inputs
         self.tower_input_lengths = tower_input_lengths
         self.tower_mel_targets = tower_mel_targets
-        # self.tower_linear_targets = tower_linear_targets
         self.tower_targets_lengths = tower_targets_lengths
         self.tower_stop_token_targets = tower_stop_token_targets
         
         self.all_vars = tf.trainable_variables()
-        
-        log("Initialized Tacotron model. Dimensions (? = dynamic shape): ")
-        log("  Train mode:               {}".format(is_training))
-        log("  Eval mode:                {}".format(is_evaluating))
-        log("  GTA mode:                 {}".format(gta))
-        log("  Synthesis mode:           {}".format(not (is_training or is_evaluating)))
-        log("  Input:                    {}".format(inputs.shape))
-        for i in range(hp.tacotron_num_gpus + hp.tacotron_gpu_start_idx):
-            log("  device:                   {}".format(i))
-            log("  embedding:                {}".format(tower_embedded_inputs[i].shape))
-            log("  enc conv out:             {}".format(tower_enc_conv_output_shape[i]))
-            log("  encoder out (cond):       {}".format(tower_encoder_cond_outputs[i].shape))
-            log("  decoder out:              {}".format(self.tower_decoder_output[i].shape))
-            log("  residual out:             {}".format(tower_residual[i].shape))
-            log("  projected residual out:   {}".format(tower_projected_residual[i].shape))
-            log("  mel out:                  {}".format(self.tower_mel_outputs[i].shape))
-            if post_condition:
-                log("  linear out:               {}".format(self.tower_linear_outputs[i].shape))
-            log("  <stop_token> out:         {}".format(self.tower_stop_token_prediction[i].shape))
-            
-            # 1_000_000 is causing syntax problems for some people?! Python please :)
-            log("  Tacotron Parameters       {:.3f} Million.".format(
-                np.sum([np.prod(v.get_shape().as_list()) for v in self.all_vars]) / 1000000))
+
     
     
     def add_loss(self):
@@ -348,11 +323,6 @@ class Tacotron():
                             self.tower_stop_token_targets[i],
                             self.tower_stop_token_prediction[i], self.tower_targets_lengths[i],
                             hparams=self._hparams)
-                        # SV2TTS extra L1 loss (disabled for now)
-                        # linear_loss = MaskedLinearLoss(self.tower_mel_targets[i],
-                        #                                self.tower_decoder_output[i],
-                        #                                self.tower_targets_lengths[i],
-                        #                                hparams=self._hparams)
                         linear_loss = 0.
                     else:
                         # Compute loss of predictions before postnet
@@ -369,18 +339,6 @@ class Tacotron():
                         # SV2TTS extra L1 loss
                         l1 = tf.abs(self.tower_mel_targets[i] - self.tower_decoder_output[i])
                         linear_loss = tf.reduce_mean(l1)
-
-                        # if hp.predict_linear:
-                        #     # Compute linear loss
-                        #     # From https://github.com/keithito/tacotron/blob/tacotron2-work-in
-						# 	# -progress/models/tacotron.py
-                        #     # Prioritize loss for frequencies under 2000 Hz.
-                        #     l1 = tf.abs(self.tower_linear_targets[i] - self.tower_linear_outputs[i])
-                        #     n_priority_freq = int(2000 / (hp.sample_rate * 0.5) * hp.num_freq)
-                        #     linear_loss = 0.5 * tf.reduce_mean(l1) + 0.5 * tf.reduce_mean(
-                        #         l1[:, :, 0:n_priority_freq])
-                        # else:
-                        #     linear_loss = 0.
                     
                     # Compute the regularization weight
                     if hp.tacotron_scale_regularization:
