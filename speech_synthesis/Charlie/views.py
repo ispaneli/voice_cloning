@@ -1,5 +1,3 @@
-import json
-from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, redirect, reverse
 from Charlie.models import UserProfile, Synthesizer
 from django.contrib.auth.models import User
@@ -8,16 +6,11 @@ from django.contrib.auth.decorators import login_required
 from django.views import View
 from django.utils.decorators import method_decorator
 import requests
-from speech_synthesis.settings import MEDIA_ROOT
 from Charlie.config import MICROSERVER_IP
 from Charlie.tasks import send_file
-import struct
-import wave
+from speech_synthesis.celery import app
 import time
-from django.core.files.base import ContentFile
-from django.core.files.storage import default_storage
-import os
-from celery.result import AsyncResult
+
 
 class Index(View):
     """
@@ -194,18 +187,12 @@ class SynthesizerView(View):
             synthesizer.input_audio = request.FILES['input_audio']
             path += 'voice_samples/' + str(synthesizer.input_audio)
 
-
         post_helper(form, user)
-        request.session['text'] = request.POST['text']
-        request.session['audio'] = path
-
         connection = requests.get(MICROSERVER_IP)
         if connection.status_code == requests.codes.ok:
-            send_file.delay(MICROSERVER_IP, request.POST['text'], path, user.username)
+            send = send_file.delay(MICROSERVER_IP, request.POST['text'], path, user.username)
+            request.session['task_id'] = send.task_id
             return redirect('Charlie:loader')
-        else:
-            return render(request, 'Charlie/error.html', context={'error': 'No connection to microserver. '
-                                                                           'Please try again'})
 
 
 class SampleView(View):
@@ -217,7 +204,14 @@ class SampleView(View):
 
 
 class LoaderView(View):
-
+    """
+        Страничка, появляющаяся после отправки формы
+    """
     @method_decorator(login_required)
     def get(self, request):
-        return render(request, 'Charlie/loader.html')
+        time.sleep(2)
+        res = app.AsyncResult(request.session['task_id'])
+        if res.state == 'FAILURE':
+            return render(request, 'Charlie/error.html')
+        else:
+            return render(request, 'Charlie/loader.html')

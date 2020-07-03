@@ -31,3 +31,7 @@ class RegistrationTest(TestCase):
         self.assertEqual(self.profile.user, self.user, "Incorrect User")
         self.assertEqual(self.profile.website, 'charlie.com', "Incorrect Website")
         self.assertEqual(self.profile.picture, 'populate/дурак.jpg', "Incorrect Picture")
+
+
+class S2SInteraction(TestCase):
+    pass
