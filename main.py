@@ -1,13 +1,15 @@
-from synthesizer.inference import Synthesizer
 from inspect import getsourcefile
-import encoder
-import vocoder
-from pathlib import Path
 import numpy as np
+import os
+from pathlib import Path
+import re
 import sounddevice as sd
 import soundfile as sf
-import os
-import re
+
+import encoder
+import vocoder
+from synthesizer.inference import Synthesizer
+
 
 MAIN_PATH = os.path.abspath(getsourcefile(lambda: None))[0:-7]
 PATH_TO_ENCODER_WEIGHTS = Path(MAIN_PATH + 'saved_models/pretrained_encoder.pt')
@@ -19,11 +21,22 @@ SYNTHESIZER_MODEL = None
 
 
 def play(wav_array):
+    """
+    Play this wav-file on your audio device.
+    :param wav_array: wav-file with a voice as an array.
+    :return: None
+    """
     sd.stop()
     sd.play(wav_array, Synthesizer.sample_rate, blocking=True)
 
 
 def check_and_get_path(path_to_file: str, exists: bool) -> Path:
+    """
+    Checks whether the file path entered in the function is correct.
+    :param path_to_file: Path to the file being checked.
+    :param exists: If the file must exist, it is True; if not, it is False.
+    :return: A proven path to the file (type: pathlib.Path).
+    """
     result = Path(path_to_file)
 
     if result.exists() is exists:
@@ -31,24 +44,38 @@ def check_and_get_path(path_to_file: str, exists: bool) -> Path:
             if result.match('*.wav'):
                 return result
             else:
-                raise FileExistsError
+                raise FileExistsError("It's not a wav-file.")
         else:
-            raise FileExistsError
+            raise FileExistsError("It's not a file.")
     else:
-        raise FileExistsError(f"This file does not exist.\nparams: {result}, exists={exists}")
+        raise FileExistsError("This file does not exist.")
 
 
 def check_and_get_message(message: str) -> str:
+    """
+    Checks the correctness of the message received in the function
+    (the message must consist ONLY of English letters and punctuation marks).
+    :param message: The message that was passed to the function.
+    :return: The correct message.
+    """
+    if not isinstance(message, str):
+        raise TypeError("The message type must be a string.")
+
     message = message.replace('\n', ' ')
 
     for letter in message:
         if not (re.search(r'[a-zA-z]', letter) or letter in SPECIAL_SYMBOLS):
-            raise ValueError
+            raise ValueError("The message can only contain English letters and punctuation marks.")
 
     return message
 
 
 def process_of_encoder(wav_array):
+    """
+    The process of converting a wav array to parameters that characterize this voice.\
+    :param wav_array: wav-file with a voice as an array.
+    :return: The characteristics of the voice.
+    """
     if not encoder.is_loaded():
         encoder.load_model(PATH_TO_ENCODER_WEIGHTS)
 
@@ -59,6 +86,12 @@ def process_of_encoder(wav_array):
 
 
 def process_of_synthesizer(embedding, message):
+    """
+    The process of converting voice and message characteristics into a speech spectrogram.
+    :param embedding: The characteristics of the voice.
+    :param message: The text to be voiced.
+    :return: A speech spectrogram and breaks of this utterance.
+    """
     global SYNTHESIZER_MODEL
 
     if SYNTHESIZER_MODEL is None:
@@ -75,34 +108,48 @@ def process_of_synthesizer(embedding, message):
 
 
 def process_of_vocode(spectrogram, breaks):
+    """
+    The process of "voicing" the spectrogram.
+    :param spectrogram: A speech spectrogram.
+    :param breaks: Breaks of needed utterance.
+    :return: Wav-file as an array.
+    """
     if not vocoder.is_loaded():
         vocoder.load_model(PATH_TO_VOCODER_WEIGHTS)
 
-    wav = vocoder.get_waveform(spectrogram)
+    wav_array = vocoder.get_waveform(spectrogram, breaks)
 
-    # Add breaks
-    b_ends = np.cumsum(np.array(breaks) * Synthesizer.hparams.hop_size)
-    b_starts = np.concatenate(([0], b_ends[:-1]))
-    wavs = [wav[start:end] for start, end, in zip(b_starts, b_ends)]
-    breaks = [np.zeros(int(0.15 * Synthesizer.sample_rate))] * len(breaks)
-    wav = np.concatenate([i for w, b in zip(wavs, breaks) for i in (w, b)])
-
-    wav = wav / np.abs(wav).max() * 0.97
-
-    return wav
+    return wav_array
 
 
 def clone_voice(path_to_voice: str, message: str, path_to_result: str, play_result: bool = False) -> None:
-    #path_to_voice = check_and_get_path(path_to_voice, exists=True)
+    """
+    Converting a fragment of a person's voice and a message into a voice message voiced by this voice.
+    :param path_to_voice: Path to the file with the example of a human voice.
+    :param message: The text that the neural network should voice.
+    :param path_to_result: The path where the result of the program should be saved.
+    :param play_result: Voice the result of the program execution or not.
+    :return: None
+    """
+    path_to_voice = check_and_get_path(path_to_voice, exists=True)
     message = check_and_get_message(message)
-    #path_to_result = check_and_get_path(path_to_result, exists=False)
+    path_to_result = check_and_get_path(path_to_result, exists=False)
 
     wav_array = Synthesizer.load_preprocess_wav(path_to_voice)
     embedding = process_of_encoder(wav_array)
     spectrogram, breaks = process_of_synthesizer(embedding, message)
-    wav = process_of_vocode(spectrogram, breaks)
+    result = process_of_vocode(spectrogram, breaks)
 
     if play_result:
-        play(wav)
+        play(result)
 
-    sf.write(path_to_result, wav, 16_000)
+    sf.write(path_to_result, result, 16_000)
+
+
+if __name__ == '__main__':
+    # EXAMPLE (How to this work):
+    MESSAGE = 'Hello!\nThis is a test message.\n' \
+              'I want to check how the main function works.' \
+              '\nThanks for your attention.\nBye!'
+
+    clone_voice('voice_for_test.wav', MESSAGE, 'result.wav', play_result=True)
