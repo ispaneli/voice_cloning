@@ -41,37 +41,55 @@ _abbreviations = [(re.compile("\\b%s\\." % x[0], re.IGNORECASE), x[1]) for x in 
 
 
 def expand_abbreviations(text):
+  """
+  Replaces abbreviations by words
+  """
   for regex, replacement in _abbreviations:
     text = re.sub(regex, replacement, text)
   return text
 
 
 def expand_numbers(text):
+  """
+  Replaces numbers and some symbols on text
+  """
   return normalize_numbers(text)
 
 
 def lowercase(text):
-  """lowercase input tokens."""
+  """
+  lowercase input tokens.
+  """
   return text.lower()
 
 
 def collapse_whitespace(text):
+  """
+  Delete excess whitespaces
+  """
   return re.sub(_whitespace_re, " ", text)
 
 
 def convert_to_ascii(text):
+  """
+  Changes text coding
+  """
   return unidecode(text)
 
 
 def basic_cleaners(text):
-  """Basic pipeline that lowercases and collapses whitespace without transliteration."""
+  """
+  Basic pipeline that lowercases and collapses whitespace without transliteration.
+  """
   text = lowercase(text)
   text = collapse_whitespace(text)
   return text
 
 
 def transliteration_cleaners(text):
-  """Pipeline for non-English text that transliterates to ASCII."""
+  """
+  Pipeline for non-English text that transliterates to ASCII.
+  """
   text = convert_to_ascii(text)
   text = lowercase(text)
   text = collapse_whitespace(text)
@@ -79,7 +97,9 @@ def transliteration_cleaners(text):
 
 
 def english_cleaners(text):
-  """Pipeline for English text, including number and abbreviation expansion."""
+  """
+  Pipeline for English text, including number and abbreviation expansion.
+  """
   text = convert_to_ascii(text)
   text = lowercase(text)
   text = expand_numbers(text)

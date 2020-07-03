@@ -7,7 +7,6 @@ from scipy.io import wavfile
 
 def save_wav(wav, path, sr):
     wav *= 32767 / max(0.01, np.max(np.abs(wav)))
-    # proposed by @dsmiller
     wavfile.write(path, sr, wav.astype(np.int16))
 
 
@@ -67,8 +66,8 @@ def _lws_processor(hparams):
 
 
 def _griffin_lim(S, hparams):
-    """librosa implementation of Griffin-Lim
-    Based on https://github.com/librosa/librosa/issues/434
+    """
+    librosa implementation of Griffin-Lim
     """
     angles = np.exp(2j * np.pi * np.random.rand(*S.shape))
     S_complex = np.abs(S).astype(np.complex)
@@ -118,7 +117,7 @@ def _denormalize(D, hparams):
         if hparams.symmetric_mels:
             return (((np.clip(D, -hparams.max_abs_value,
                               hparams.max_abs_value) + hparams.max_abs_value) * -hparams.min_level_db / (
-                                 2 * hparams.max_abs_value))
+                             2 * hparams.max_abs_value))
                     + hparams.min_level_db)
         else:
             return ((np.clip(D, 0,
@@ -126,6 +125,6 @@ def _denormalize(D, hparams):
 
     if hparams.symmetric_mels:
         return (((D + hparams.max_abs_value) * -hparams.min_level_db / (
-                    2 * hparams.max_abs_value)) + hparams.min_level_db)
+                2 * hparams.max_abs_value)) + hparams.min_level_db)
     else:
         return ((D * -hparams.min_level_db / hparams.max_abs_value) + hparams.min_level_db)

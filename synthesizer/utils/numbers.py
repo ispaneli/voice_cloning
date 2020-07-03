@@ -11,14 +11,23 @@ _number_re = re.compile(r"[0-9]+")
 
 
 def _remove_commas(m):
+  """
+  Remove commas
+  """
   return m.group(1).replace(",", "")
 
 
 def _expand_decimal_point(m):
+  """
+  Replaces points in numbers on text
+  """
   return m.group(1).replace(".", " point ")
 
 
 def _expand_dollars(m):
+  """
+  Replaces "money" on text
+  """
   match = m.group(1)
   parts = match.split(".")
   if len(parts) > 2:
@@ -44,6 +53,9 @@ def _expand_ordinal(m):
 
 
 def _expand_number(m):
+  """
+  Replaces numbers on text
+  """
   num = int(m.group(0))
   if num > 1000 and num < 3000:
     if num == 2000:
@@ -59,6 +71,9 @@ def _expand_number(m):
 
 
 def normalize_numbers(text):
+  """
+  Replaces numbers and some symbols on text
+  """
   text = re.sub(_comma_number_re, _remove_commas, text)
   text = re.sub(_pounds_re, r"\1 pounds", text)
   text = re.sub(_dollars_re, _expand_dollars, text)
