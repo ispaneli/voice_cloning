@@ -27,23 +27,14 @@ def is_loaded() -> bool:
     return vocoder_model.is_loaded()
 
 
-def get_waveform(mel_spectrogram: np.ndarray, breaks: list) -> np.ndarray:
+def get_waveform(mel_spectrogram: np.ndarray) -> np.ndarray:
     """
     Converting the synthesized spectrogram to wav.
 
     :param mel_spectrogram: Spectrogram in mel-scale, written as a mathematical matrix.
-    :param breaks: Breaks of needed utterance.
     :return: wav as a one-dimensional array.
     """
     mel_spectrogram /= 4
     mel_spectrogram = torch.from_numpy(mel_spectrogram[None, ...])
-    wav_array = vocoder_model.generate_wav(mel_spectrogram)
-
-    # Add breaks
-    break_ends = np.cumsum(200 * np.array(breaks))
-    break_starts = np.concatenate(([0], break_ends[:-1]))
-    waves = [wav_array[start:end] for start, end, in zip(break_starts, break_ends)]
-    breaks = [np.zeros(int(0.15 * 16_000))] * len(breaks)
-    wav_array = np.concatenate([i for wave, one_break in zip(waves, breaks) for i in (wave, one_break)])
-
-    return wav_array / np.abs(wav_array).max() * 0.97
+    wav = vocoder_model.generate_wav(mel_spectrogram)
+    return wav

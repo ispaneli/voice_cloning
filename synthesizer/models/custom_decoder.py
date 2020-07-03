@@ -11,6 +11,7 @@ from tensorflow.python.util import nest
 
 class CustomDecoderOutput(
 		collections.namedtuple("CustomDecoderOutput", ("rnn_output", "token_output", "sample_id"))):
+	"""Needs only for convinient output of cell"""
 	pass
 
 
@@ -51,9 +52,15 @@ class CustomDecoder(decoder.Decoder):
 
 	@property
 	def batch_size(self):
+		"""
+		Returns size of batch for training
+		"""
 		return self._helper.batch_size
 
 	def _rnn_output_size(self):
+		"""
+		Returns output size of recurrent neural network
+		"""
 		size = self._cell.output_size
 		if self._output_layer is None:
 			return size
@@ -73,7 +80,9 @@ class CustomDecoder(decoder.Decoder):
 
 	@property
 	def output_size(self):
-		# Return the cell output and the id
+		"""
+		Return the cell output and the id
+		"""
 		return CustomDecoderOutput(
 				rnn_output=self._rnn_output_size(),
 				token_output=self._helper.token_output_size,
@@ -81,9 +90,11 @@ class CustomDecoder(decoder.Decoder):
 
 	@property
 	def output_dtype(self):
-		# Assume the dtype of the cell is the output_size structure
-		# containing the input_state"s first component's dtype.
-		# Return that structure and the sample_ids_dtype from the helper.
+		"""
+		Assume the dtype of the cell is the output_size structure
+		containing the input_state"s first component's dtype.
+		Return that structure and the sample_ids_dtype from the helper.
+		"""
 		dtype = nest.flatten(self._initial_state)[0].dtype
 		return CustomDecoderOutput(
 				nest.map_structure(lambda _: dtype, self._rnn_output_size()),
@@ -91,7 +102,8 @@ class CustomDecoder(decoder.Decoder):
 				self._helper.sample_ids_dtype)
 
 	def initialize(self, name=None):
-		"""Initialize the decoder.
+		"""
+		Initialize the decoder.
 		Args:
 			name: Name scope for any created operations.
 		Returns:
@@ -100,7 +112,8 @@ class CustomDecoder(decoder.Decoder):
 		return self._helper.initialize() + (self._initial_state,)
 
 	def step(self, time, inputs, state, name=None):
-		"""Perform a custom decoding step.
+		"""
+		Perform a custom decoding step.
 		Enables for dyanmic <stop_token> prediction
 		Args:
 			time: scalar `int32` tensor.

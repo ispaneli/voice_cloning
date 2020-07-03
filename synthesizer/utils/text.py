@@ -14,7 +14,8 @@ _curly_re = re.compile(r"(.*?)\{(.+?)\}(.*)")
 
 
 def text_to_sequence(text, cleaner_names):
-  """Converts a string of text to a sequence of IDs corresponding to the symbols in the text.
+  """
+    Converts a string of text to a sequence of IDs corresponding to the symbols in the text.
 
     The text can optionally have ARPAbet sequences enclosed in curly braces embedded
     in it. For example, "Turn left on {HH AW1 S S T AH0 N} Street."
@@ -44,7 +45,9 @@ def text_to_sequence(text, cleaner_names):
 
 
 def sequence_to_text(sequence):
-  """Converts a sequence of IDs back to a string"""
+  """
+  Converts a sequence of IDs back to a string
+  """
   result = ""
   for symbol_id in sequence:
     if symbol_id in _id_to_symbol:
@@ -57,6 +60,9 @@ def sequence_to_text(sequence):
 
 
 def _clean_text(text, cleaner_names):
+  """
+  Clean text from excess symbols
+  """
   for name in cleaner_names:
     cleaner = getattr(cleaners, name)
     if not cleaner:
@@ -66,12 +72,21 @@ def _clean_text(text, cleaner_names):
 
 
 def _symbols_to_sequence(symbols):
+  """
+  Makes sequence from input list of symbols
+  """
   return [_symbol_to_id[s] for s in symbols if _should_keep_symbol(s)]
 
 
 def _arpabet_to_sequence(text):
+  """
+  Makes sequence from input text arpabet
+  """
   return _symbols_to_sequence(["@" + s for s in text.split()])
 
 
 def _should_keep_symbol(s):
+  """
+  Checks for characters in the alphabet
+  """
   return s in _symbol_to_id and s not in ("_", "~")
