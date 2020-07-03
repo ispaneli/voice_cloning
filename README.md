@@ -19,6 +19,6 @@
 1) ставим все из требований
 2) не забываем поставить брокер под celery(работало с rabbitmq)
 3) в одном терминале запускаем celery
-    celery worker -A app.celery --loglevel=info --concurrency 1 -P solo
+    celery worker -A speech_synthesis --loglevel=info --concurrency 1 -P solo
 4) в другом django сервер на необходим ip:port
 P.S Если необходимо меняем ip адреса в config
