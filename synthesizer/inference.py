@@ -36,7 +36,6 @@ class Synthesizer:
         if verbose:
             model_name = checkpoints_dir.parent.name.replace("logs-", "")
             step = int(self.checkpoint_fpath[self.checkpoint_fpath.rfind('-') + 1:])
-            print("Found synthesizer \"%s\" trained to step %d" % (model_name, step))
 
 
     def is_loaded(self):

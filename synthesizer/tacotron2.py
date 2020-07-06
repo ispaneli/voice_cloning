@@ -105,6 +105,16 @@ class Tacotron2:
         return [mel.T for mel in mels], alignments
 
     def synthesize(self, texts, basenames, out_dir, log_dir, mel_filenames, embed_filenames):
+        """
+
+        :param texts:
+        :param basenames:
+        :param out_dir:
+        :param log_dir:
+        :param mel_filenames:
+        :param embed_filenames:
+        :return:
+        """
         hparams = self._hparams
         cleaner_names = [x.strip() for x in hparams.cleaners.split(",")]
 

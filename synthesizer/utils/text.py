@@ -62,6 +62,11 @@ def sequence_to_text(sequence):
 def _clean_text(text, cleaner_names):
   """
   Clean text from excess symbols
+  Args:
+      text: string to convert to a sequence
+      cleaner_names: names of the cleaner functions to run the text through
+  Returns:
+      List of integers corresponding to the symbols in the text
   """
   for name in cleaner_names:
     cleaner = getattr(cleaners, name)
@@ -74,6 +79,10 @@ def _clean_text(text, cleaner_names):
 def _symbols_to_sequence(symbols):
   """
   Makes sequence from input list of symbols
+  Args:
+      symbols: string to convert to a sequence
+  Returns:
+      List of integers corresponding to the symbols in the text
   """
   return [_symbol_to_id[s] for s in symbols if _should_keep_symbol(s)]
 
@@ -81,6 +90,10 @@ def _symbols_to_sequence(symbols):
 def _arpabet_to_sequence(text):
   """
   Makes sequence from input text arpabet
+  Args:
+      text: string to convert to a sequence
+  Returns:
+      List of integers corresponding to the symbols in the text
   """
   return _symbols_to_sequence(["@" + s for s in text.split()])
 
@@ -88,5 +101,9 @@ def _arpabet_to_sequence(text):
 def _should_keep_symbol(s):
   """
   Checks for characters in the alphabet
+  Args:
+      s: char which we check
+  Returns:
+      List of integers corresponding to the symbols in the text
   """
   return s in _symbol_to_id and s not in ("_", "~")

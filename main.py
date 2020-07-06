@@ -112,7 +112,7 @@ def process_of_synthesizer(embedding, message):
     return spectrogram, breaks
 
 
-def process_of_vocode(spectrogram, breaks):
+def process_of_vocode(spectrogram):
     """
     The process of "voicing" the spectrogram.
 
@@ -123,7 +123,7 @@ def process_of_vocode(spectrogram, breaks):
     if not vocoder.is_loaded():
         vocoder.load_model(PATH_TO_VOCODER_WEIGHTS)
 
-    wav_array = vocoder.get_waveform(spectrogram, breaks)
+    wav_array = vocoder.get_waveform(spectrogram)
 
     return wav_array
 
