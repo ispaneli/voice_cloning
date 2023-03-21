@@ -1,0 +1,66 @@
+{% extends 'Charlie/base.html' %}
+{% load static %}
+
+{% block title_block %}
+    Synthesizer
+{% endblock %}
+
+{% block body_block%}
+    <div class="jumbotron p-1">
+            <h1 class="jumbotron-heading">Synthesizer</h1>
+            <p class="lead">Let's hear the voice of your PC!</p>
+    </div>
+<div class="container">
+<div class="row">
+            <form id="synthesizer" method="post" action="{% url 'Charlie:synthesizer'%}"
+                  enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="was-validated">
+                    <p class="lead">
+                        <label for="id_text">Text message:</label>
+                    </p>
+                    <div class="mb-3">
+                        <textarea class="form-control is-invalid" name="text" id="id_text" cols='10' rows="5"
+                        placeholder="Print your message here" required></textarea>
+                    </div>
+                </div>
+                <div class="card text-white bg-info mb-3">
+                        <div class="card-body" >
+                            <h5 class="card-title">Choose Voice or upload your own</h5>
+                        </div>
+                </div>
+                <p class="lead">
+                    <label for="id_choices">Voice Sample:</label>
+                </p>
+                <div class="mb-3">
+                <div class="input-group is-invalid">
+                    <select  class="custom-select" name="choices" id="id_choices" required>
+                        <option value="">Choose...</option>
+                        <option value="1">Durak(male voice)</option>
+                        <option value="2">Moriak(male voice)</option>
+                        <option value="3">Bee(new gender)</option>
+                        <option value="4">Your voice</option>
+                    </select>
+                </div>
+                </div>
+                <p class="lead">
+                    Input audio:
+                </p>
+                <div class="form-group">
+                    <div class="card text-white bg-info mb-3">
+                        <div class="card-body" >
+                            <h5 class="card-title">Прочти текст и загрузи запись</h5>
+                            <p class="lead">
+                                Текст про пчелу и её в проблемы в Миннеаполисе
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <input type="file" class="form-control-file" name="input_audio" id="id_input_audio">
+                </div>
+                <input type="submit" class="btn-primary btn-lg" value="Synthesize" />
+            </form>
+        </div>
+</div>
+{% endblock %}
