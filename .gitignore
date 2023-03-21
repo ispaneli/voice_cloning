@@ -1,0 +1,5 @@
+/myvenv/
+.idea/
+voice_for_test.wav
+**/__pycache__
+**/saved_models/
