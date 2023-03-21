@@ -1,4 +1,6 @@
-# Python Developer Project
+# Voice cloning
+
+The final work of the course "Python Developer. Professional development (2020)".
 
 ## Веб часть проекта
 Оболочка представялет собой сайт с базовым функционалом регистрации пользователя.
